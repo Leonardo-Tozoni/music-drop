@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 
-const IMPORT_API_URL = import.meta.env.VITE_IMPORT_API_URL as string | undefined
 const YOUTUBE_RE = /^https?:\/\/(www\.|m\.|music\.)?(youtube\.com|youtu\.be)\//
 
 interface Props {
@@ -19,30 +18,22 @@ export default function ImportYoutubeModal({ onClose, onSuccess }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!IMPORT_API_URL) { setError('VITE_IMPORT_API_URL não configurada.'); return }
     if (!YOUTUBE_RE.test(url.trim())) { setError('Cole um link do YouTube.'); return }
 
     setSending(true)
     setError('')
-    const { data: { session } } = await supabase.auth.getSession()
-
-    try {
-      const res = await fetch(`${IMPORT_API_URL.replace(/\/$/, '')}/import`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.access_token ?? ''}`,
-        },
-        body: JSON.stringify({ url: url.trim(), name: name.trim(), band: band.trim(), key: key.trim() }),
-      })
-      if (!res.ok) {
-        const body = await res.json().catch(() => null)
-        setError(body?.detail ?? `Erro ${res.status} no servidor de importação.`)
-        setSending(false)
-        return
-      }
-    } catch {
-      setError('Servidor de importação indisponível.')
+    // The import worker (server/worker.py) picks up pending rows and downloads the audio;
+    // empty name/band are filled from the video's title and channel
+    const { error: dbError } = await supabase.from('tracks').insert({
+      name: name.trim(),
+      band: band.trim(),
+      key: key.trim(),
+      source: 'youtube',
+      youtube_url: url.trim(),
+      status: 'pending',
+    })
+    if (dbError) {
+      setError('Erro ao salvar: ' + dbError.message)
       setSending(false)
       return
     }
@@ -86,7 +77,9 @@ export default function ImportYoutubeModal({ onClose, onSuccess }: Props) {
               placeholder="Ex: Am, C, G#m..."
             />
           </label>
-          <p className="form-hint">O áudio é baixado em segundo plano e aparece na lista quando ficar pronto.</p>
+          <p className="form-hint">
+            O áudio é baixado pelo importador da banda e aparece na lista quando ficar pronto.
+          </p>
           {error && <p className="form-error">{error}</p>}
           <div className="form-actions">
             <button type="button" className="btn-secondary" onClick={onClose} disabled={sending}>
