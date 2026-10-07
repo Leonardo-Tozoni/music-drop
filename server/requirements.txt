@@ -1,3 +1,5 @@
 supabase>=2.10
 # [default] pulls yt-dlp-ejs, used with Deno to solve YouTube's JavaScript challenges
 yt-dlp[default]>=2025.11.12
+# Key estimation for imported songs
+essentia>=2.1b6.dev1110

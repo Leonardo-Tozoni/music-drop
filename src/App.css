@@ -977,6 +977,29 @@
 .vote-column.nao_vou h4 { color: #fca5a5; }
 .vote-person { font-size: 13px; padding: 3px 0; }
 
+/* ── Bulk import ── */
+.modal-wide { max-width: 640px; max-height: calc(100svh - 32px); overflow-y: auto; }
+.bulk-preview {
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px;
+}
+.bulk-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 4px 6px;
+  font-size: 13px;
+}
+.bulk-num { color: var(--text-muted); text-align: right; }
+.bulk-name, .bulk-band { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bulk-band { color: var(--text-muted); }
+.checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+.checkbox-row input { width: 16px; height: 16px; accent-color: var(--primary); }
+
 /* ── Mobile ── */
 @media (max-width: 700px) {
   .content-area { flex-direction: column; }
