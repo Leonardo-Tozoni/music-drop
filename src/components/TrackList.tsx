@@ -36,7 +36,7 @@ export default function TrackList({ tracks, currentTrackId, onSelect, onDelete }
           >
             <span className="track-num">{active ? '▶' : i + 1}</span>
             <span className="track-name">
-              {track.name}
+              {track.name || (track.status === 'pending' ? 'Importando…' : 'Sem título')}
               {track.source === 'youtube' && <span className="badge" title={track.youtube_url ?? ''}>YT</span>}
               {track.status === 'pending' && <span className="badge badge-pending">processando…</span>}
               {track.status === 'error' && (

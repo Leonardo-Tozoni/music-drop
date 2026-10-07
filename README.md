@@ -5,8 +5,8 @@ e músicas (upload de MP3 ou importação por link do YouTube) com ferramenta pa
 
 Login por e-mail e senha; só entram membros criados no painel do Supabase.
 
-Stack: React 19 + Vite + TypeScript, Supabase (Auth, Postgres, Storage, Realtime), serviço de import em
-Python (FastAPI + yt-dlp + ffmpeg).
+Stack: React 19 + Vite + TypeScript, Supabase (Auth, Postgres, Storage, Realtime), importador do
+YouTube em Python (yt-dlp + ffmpeg) que roda no computador de um membro.
 
 ## Configuração
 
@@ -25,30 +25,34 @@ Python (FastAPI + yt-dlp + ffmpeg).
 ### 2. Web app
 
 ```bash
-cp .env.example .env   # preencha VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_IMPORT_API_URL
+cp .env.example .env   # preencha VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY
 npm install
 npm run dev
 ```
 
 Na Vercel, configure as mesmas variáveis. O `vercel.json` já redireciona as rotas para o `index.html`.
 
-### 3. Serviço de import do YouTube (`server/`)
+### 3. Importador do YouTube (`server/`)
 
 > Baixar áudio do YouTube viola os Termos de Uso do YouTube. Use por sua conta e risco, apenas para
-> material que a banda tem direito de usar. O YouTube às vezes bloqueia IPs de datacenter; se o import
-> falhar, use o upload de MP3.
+> material que a banda tem direito de usar.
 
-Local, com Docker:
+O app grava o link como música `pending`. O importador roda num computador com internet de casa
+(o YouTube bloqueia servidores de nuvem como o Render), procura músicas pendentes a cada 10 s, baixa o
+áudio e envia para o Storage. Com o computador desligado, os imports ficam "processando…" e são baixados
+quando ele voltar.
 
 ```bash
 cd server
-cp .env.example .env   # SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ALLOWED_ORIGIN
+cp .env.example .env   # SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY
 docker build -t music-drop-import .
-docker run --env-file .env -p 8000:8000 music-drop-import
+docker run -d --name music-drop-import --restart unless-stopped --env-file .env music-drop-import
+docker logs -f music-drop-import   # acompanhar
 ```
 
-Deploy: qualquer host com Docker (Render, Railway, Fly.io). Aponte `VITE_IMPORT_API_URL` para a URL do serviço.
-A service role key fica **só** no servidor.
+Com `--restart unless-stopped` o importador volta sozinho sempre que o Docker Desktop iniciar. O yt-dlp é
+atualizado a cada início do container; se o YouTube mudar algo e os imports falharem,
+`docker restart music-drop-import` costuma resolver. A service role key fica **só** no `server/.env`.
 
 ## Scripts
 
