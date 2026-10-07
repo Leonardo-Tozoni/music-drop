@@ -8,6 +8,7 @@ import AgendaView from './components/AgendaView'
 import ChordSheet from './components/ChordSheet'
 import EventDetail from './components/EventDetail'
 import ImportYoutubeModal from './components/ImportYoutubeModal'
+import BulkImportModal from './components/BulkImportModal'
 import Login from './components/Login'
 import ProfileModal from './components/ProfileModal'
 import Player from './components/Player'
@@ -60,6 +61,7 @@ function BandApp({ userId }: { userId: string }) {
   const [showYoutube, setShowYoutube] = useState(false)
   const [showAddTracks, setShowAddTracks] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
+  const [showBulk, setShowBulk] = useState(false)
   const [loading, setLoading] = useState(true)
 
   const fetchTracks = useCallback(async () => {
@@ -327,6 +329,20 @@ function BandApp({ userId }: { userId: string }) {
         <ImportYoutubeModal
           onClose={() => setShowYoutube(false)}
           onSuccess={() => { fetchTracks(); setShowYoutube(false); navigate('/musicas') }}
+          onBulk={() => { setShowYoutube(false); setShowBulk(true) }}
+        />
+      )}
+
+      {showBulk && (
+        <BulkImportModal
+          tracks={tracks}
+          onClose={() => setShowBulk(false)}
+          onSuccess={(playlistId) => {
+            fetchTracks()
+            fetchPlaylists()
+            setShowBulk(false)
+            navigate(playlistId ? `/repertorios/${playlistId}` : '/musicas')
+          }}
         />
       )}
 

@@ -6,9 +6,10 @@ const YOUTUBE_RE = /^https?:\/\/(www\.|m\.|music\.)?(youtube\.com|youtu\.be)\//
 interface Props {
   onClose: () => void
   onSuccess: () => void
+  onBulk: () => void
 }
 
-export default function ImportYoutubeModal({ onClose, onSuccess }: Props) {
+export default function ImportYoutubeModal({ onClose, onSuccess, onBulk }: Props) {
   const [url, setUrl] = useState('')
   const [name, setName] = useState('')
   const [band, setBand] = useState('')
@@ -49,6 +50,9 @@ export default function ImportYoutubeModal({ onClose, onSuccess }: Props) {
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <form onSubmit={handleSubmit} className="upload-form">
+          <button type="button" className="btn-secondary" onClick={onBulk}>
+            Importar uma lista de músicas de uma vez
+          </button>
           <label className="form-group">
             <span>Link do YouTube</span>
             <input

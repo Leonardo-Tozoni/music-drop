@@ -1,5 +1,24 @@
 import { describe, expect, it } from 'vitest'
 import { isChordLine, transposeChord, transposeKey, transposeSheet } from './transpose'
+import { parseSongLine, parseSongList } from './songList'
+
+describe('parseSongLine', () => {
+  it('drops numbering and splits on the last dash', () => {
+    expect(parseSongLine('12 - Kickstart My Heart - Mötley Crüe')).toEqual({ name: 'Kickstart My Heart', band: 'Mötley Crüe' })
+    expect(parseSongLine('You Shook Me All Night Long - AC/DC')).toEqual({ name: 'You Shook Me All Night Long', band: 'AC/DC' })
+    expect(parseSongLine("19 - Separate Ways (Worlds Apart) - Journey")).toEqual({ name: 'Separate Ways (Worlds Apart)', band: 'Journey' })
+  })
+
+  it('ignores lines without artist', () => {
+    expect(parseSongLine('BIS')).toBeNull()
+  })
+
+  it('parses a whole setlist', () => {
+    const { songs, ignored } = parseSongList('5 - More Than a Feeling - Boston\n\nBIS\n28 - Times Like Theese - Foo Fighters')
+    expect(songs).toHaveLength(2)
+    expect(ignored).toEqual(['BIS'])
+  })
+})
 
 describe('transposeChord', () => {
   it('shifts simple chords', () => {
