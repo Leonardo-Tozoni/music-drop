@@ -1,0 +1,103 @@
+import { useState } from 'react'
+import { supabase } from '../lib/supabase'
+
+const IMPORT_API_URL = import.meta.env.VITE_IMPORT_API_URL as string | undefined
+const YOUTUBE_RE = /^https?:\/\/(www\.|m\.|music\.)?(youtube\.com|youtu\.be)\//
+
+interface Props {
+  onClose: () => void
+  onSuccess: () => void
+}
+
+export default function ImportYoutubeModal({ onClose, onSuccess }: Props) {
+  const [url, setUrl] = useState('')
+  const [name, setName] = useState('')
+  const [band, setBand] = useState('')
+  const [key, setKey] = useState('')
+  const [sending, setSending] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!IMPORT_API_URL) { setError('VITE_IMPORT_API_URL não configurada.'); return }
+    if (!YOUTUBE_RE.test(url.trim())) { setError('Cole um link do YouTube.'); return }
+
+    setSending(true)
+    setError('')
+    const { data: { session } } = await supabase.auth.getSession()
+
+    try {
+      const res = await fetch(`${IMPORT_API_URL.replace(/\/$/, '')}/import`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token ?? ''}`,
+        },
+        body: JSON.stringify({ url: url.trim(), name: name.trim(), band: band.trim(), key: key.trim() }),
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => null)
+        setError(body?.detail ?? `Erro ${res.status} no servidor de importação.`)
+        setSending(false)
+        return
+      }
+    } catch {
+      setError('Servidor de importação indisponível.')
+      setSending(false)
+      return
+    }
+
+    onSuccess()
+  }
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Importar do YouTube</h2>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <form onSubmit={handleSubmit} className="upload-form">
+          <label className="form-group">
+            <span>Link do YouTube</span>
+            <input
+              type="text"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=..."
+              required
+              autoFocus
+            />
+          </label>
+          <label className="form-group">
+            <span>Nome da Música (opcional — usa o título do vídeo)</span>
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
+          </label>
+          <label className="form-group">
+            <span>Banda / Artista (opcional — usa o canal)</span>
+            <input type="text" value={band} onChange={(e) => setBand(e.target.value)} />
+          </label>
+          <label className="form-group">
+            <span>Tom</span>
+            <input
+              type="text"
+              value={key}
+              onChange={(e) => setKey(e.target.value)}
+              placeholder="Ex: Am, C, G#m..."
+            />
+          </label>
+          <p className="form-hint">O áudio é baixado em segundo plano e aparece na lista quando ficar pronto.</p>
+          {error && <p className="form-error">{error}</p>}
+          <div className="form-actions">
+            <button type="button" className="btn-secondary" onClick={onClose} disabled={sending}>
+              Cancelar
+            </button>
+            <button type="submit" className="btn-primary" disabled={sending || !url.trim()}>
+              {sending ? 'Enviando...' : 'Importar'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}

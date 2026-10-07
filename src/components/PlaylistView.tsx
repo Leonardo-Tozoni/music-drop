@@ -1,4 +1,4 @@
-import type { Playlist, PlaylistTrackWithTrack } from '../types'
+﻿import type { Playlist, PlaylistTrackWithTrack } from '../types'
 
 interface Props {
   playlist: Playlist
@@ -26,16 +26,16 @@ export default function PlaylistView({
           <button className="btn-primary" onClick={onAddTracks}>+ Adicionar músicas</button>
           <button
             className="btn-danger"
-            onClick={() => { if (confirm(`Deletar playlist "${playlist.name}"?`)) onDeletePlaylist() }}
+            onClick={() => { if (confirm(`Deletar repertório "${playlist.name}"?`)) onDeletePlaylist() }}
           >
-            Deletar playlist
+            Deletar repertório
           </button>
         </div>
       </div>
 
       {tracks.length === 0 ? (
         <div className="empty-state">
-          <p>Playlist vazia.</p>
+          <p>Repertório vazio.</p>
           <button className="btn-primary" onClick={onAddTracks}>Adicionar músicas</button>
         </div>
       ) : (
@@ -76,7 +76,7 @@ export default function PlaylistView({
                 </div>
                 <button
                   className="delete-btn"
-                  title="Remover da playlist"
+                  title="Remover do repertório"
                   onClick={(e) => { e.stopPropagation(); onRemove(pt.id) }}
                 >×</button>
               </div>
