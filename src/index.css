@@ -5,14 +5,18 @@
 }
 
 :root {
-  --bg: #0f1117;
-  --surface: #1a1d27;
-  --surface-hover: #22263a;
-  --border: #2a2d3e;
-  --primary: #7c3aed;
-  --primary-hover: #6d28d9;
+  --bg: #050507;
+  --surface: #101014;
+  --surface-hover: #1c1c24;
+  --border: #2a2a35;
+  --primary: #ff2e88;
+  --primary-rgb: 255, 46, 136;
+  --primary-light: #ff8cc0;
+  --primary-hover: #e0176d;
+  --accent: #22e4ff;
+  --accent-rgb: 34, 228, 255;
   --text: #f0f0f5;
-  --text-muted: #7b7f9e;
+  --text-muted: #8a8a9c;
   --danger: #ef4444;
   --radius: 8px;
 }

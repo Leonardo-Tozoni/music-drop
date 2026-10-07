@@ -1,20 +1,17 @@
 import { useState } from 'react'
+import { NavLink } from 'react-router-dom'
 import type { Playlist } from '../types'
 
 interface Props {
   playlists: Playlist[]
-  selectedPlaylistId: string | null
   trackCount: number
-  onSelectAll: () => void
-  onSelectPlaylist: (id: string) => void
   onCreatePlaylist: (name: string) => void
   onDeletePlaylist: (id: string) => void
 }
 
-export default function Sidebar({
-  playlists, selectedPlaylistId, trackCount,
-  onSelectAll, onSelectPlaylist, onCreatePlaylist, onDeletePlaylist,
-}: Props) {
+const itemClass = ({ isActive }: { isActive: boolean }) => `sidebar-item${isActive ? ' active' : ''}`
+
+export default function Sidebar({ playlists, trackCount, onCreatePlaylist, onDeletePlaylist }: Props) {
   const [creating, setCreating] = useState(false)
   const [newName, setNewName] = useState('')
 
@@ -33,20 +30,20 @@ export default function Sidebar({
 
   return (
     <aside className="sidebar">
-      <div
-        className={`sidebar-item${selectedPlaylistId === null ? ' active' : ''}`}
-        onClick={onSelectAll}
-      >
-        <span>Todas as músicas</span>
+      <NavLink to="/agenda" className={itemClass}>
+        <span>📅 Agenda</span>
+      </NavLink>
+      <NavLink to="/musicas" className={itemClass}>
+        <span>🎵 Músicas</span>
         <span className="sidebar-count">{trackCount}</span>
-      </div>
+      </NavLink>
 
       <div className="sidebar-section-title">
-        <span>Playlists</span>
+        <span>Repertórios</span>
         <button
           className="sidebar-add-btn"
           onClick={() => setCreating(true)}
-          title="Nova playlist"
+          title="Novo repertório"
         >+</button>
       </div>
 
@@ -57,7 +54,7 @@ export default function Sidebar({
             type="text"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            placeholder="Nome da playlist..."
+            placeholder="Nome do repertório..."
           />
           <div className="create-playlist-actions">
             <button type="submit" className="btn-primary" disabled={!newName.trim()}>
@@ -71,27 +68,24 @@ export default function Sidebar({
       )}
 
       {playlists.map((pl) => (
-        <div
-          key={pl.id}
-          className={`sidebar-item${selectedPlaylistId === pl.id ? ' active' : ''}`}
-          onClick={() => onSelectPlaylist(pl.id)}
-        >
+        <NavLink key={pl.id} to={`/repertorios/${pl.id}`} className={itemClass}>
           <span className="sidebar-playlist-name">♪ {pl.name}</span>
           <button
             className="sidebar-delete-btn"
-            title="Deletar playlist"
+            title="Deletar repertório"
             onClick={(e) => {
+              e.preventDefault()
               e.stopPropagation()
-              if (confirm(`Deletar playlist "${pl.name}"?`)) onDeletePlaylist(pl.id)
+              if (confirm(`Deletar repertório "${pl.name}"?`)) onDeletePlaylist(pl.id)
             }}
           >
             ×
           </button>
-        </div>
+        </NavLink>
       ))}
 
       {playlists.length === 0 && !creating && (
-        <div className="sidebar-empty">Nenhuma playlist</div>
+        <div className="sidebar-empty">Nenhum repertório</div>
       )}
     </aside>
   )
