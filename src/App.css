@@ -1,4 +1,4 @@
-﻿/* ── Layout ── */
+/* ── Layout ── */
 .app {
   display: flex;
   flex-direction: column;
@@ -371,6 +371,7 @@
   align-items: center;
   gap: 8px;
   width: 280px;
+  position: relative;
 }
 
 .time {
@@ -379,7 +380,7 @@
   font-variant-numeric: tabular-nums;
   min-width: 32px;
 }
-.time:last-child { text-align: right; }
+.seek-bar + .time { text-align: right; }
 
 .seek-bar {
   flex: 1;
@@ -557,7 +558,7 @@
 
 .pv-list-header {
   display: grid;
-  grid-template-columns: 40px 1fr 1fr 80px 56px 40px;
+  grid-template-columns: 40px 1fr 1fr 80px 40px 56px 40px;
   gap: 12px;
   align-items: center;
   padding: 8px 12px;
@@ -571,7 +572,7 @@
 
 .pv-item {
   display: grid;
-  grid-template-columns: 40px 1fr 1fr 80px 56px 40px;
+  grid-template-columns: 40px 1fr 1fr 80px 40px 56px 40px;
   gap: 12px;
   align-items: center;
   padding: 10px 12px;
@@ -725,6 +726,28 @@
 }
 .chord-link.has-chords { opacity: 1; color: var(--primary); }
 .chord-link:hover { opacity: 1; background: var(--surface-hover); color: var(--text); }
+
+/* ── Player right column: pitch ── */
+.player-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 0;
+}
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+/* Hangs off the right of the progress bar so the bar stays centered under the controls */
+.player-progress .volume-control {
+  position: absolute;
+  left: 100%;
+  margin-left: 12px;
+}
+.volume-btn { width: 28px; height: 28px; }
+.volume-bar { flex: none; width: 90px; }
 
 /* ── Pitch control ── */
 .pitch-control {
@@ -1024,7 +1047,7 @@
 
   .pv-list-header,
   .pv-item {
-    grid-template-columns: 32px 1fr 60px 56px 36px;
+    grid-template-columns: 32px 1fr 60px 36px 56px 36px;
   }
   .pv-band { display: none; }
 
@@ -1037,8 +1060,10 @@
   }
   .player-info { display: none; }
   .player-progress { width: 100%; }
+  .player-progress .volume-control { position: static; margin-left: 4px; }
   .player { grid-template-rows: auto auto auto; }
   .pitch-control { justify-content: center; }
+  .player-right { align-items: center; }
 
   .header { height: auto; min-height: 60px; padding: 8px 16px; flex-wrap: wrap; gap: 8px; }
   .agenda-view, .event-detail, .chord-sheet, .playlist-view { padding: 16px 0; }

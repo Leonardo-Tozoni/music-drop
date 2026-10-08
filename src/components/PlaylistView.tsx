@@ -1,4 +1,6 @@
-﻿import type { Playlist, PlaylistTrackWithTrack } from '../types'
+import { Link } from 'react-router-dom'
+import type { Playlist, PlaylistTrackWithTrack } from '../types'
+import { PlayIcon } from './Icons'
 
 interface Props {
   playlist: Playlist
@@ -45,6 +47,7 @@ export default function PlaylistView({
             <span>Música</span>
             <span>Banda</span>
             <span>Tom</span>
+            <span>Cifra</span>
             <span>Ordem</span>
             <span />
           </div>
@@ -56,10 +59,18 @@ export default function PlaylistView({
                 className={`pv-item${active ? ' active' : ''}`}
                 onClick={() => onPlay(pt.track.id)}
               >
-                <span className="pv-num">{active ? '▶' : i + 1}</span>
+                <span className="pv-num">{active ? <PlayIcon size={12} /> : i + 1}</span>
                 <span className="pv-name">{pt.track.name}</span>
                 <span className="pv-band">{pt.track.band}</span>
                 <span className="track-key">{pt.track.key}</span>
+                <Link
+                  to={`/musicas/${pt.track.id}/cifra`}
+                  className={`chord-link${pt.track.chords ? ' has-chords' : ''}`}
+                  title={pt.track.chords ? 'Ver cifra' : 'Adicionar cifra'}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  𝄞
+                </Link>
                 <div className="reorder-btns">
                   <button
                     className="reorder-btn"

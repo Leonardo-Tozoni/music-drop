@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import type { Track } from '../types'
+import { PlayIcon } from './Icons'
 
 interface Props {
   tracks: Track[]
@@ -34,7 +35,7 @@ export default function TrackList({ tracks, currentTrackId, onSelect, onDelete }
             className={`track-item${active ? ' active' : ''}${ready ? '' : ' disabled'}`}
             onClick={() => ready && onSelect(track.id)}
           >
-            <span className="track-num">{active ? '▶' : i + 1}</span>
+            <span className="track-num">{active ? <PlayIcon size={12} /> : i + 1}</span>
             <span className="track-name">
               {track.name || (track.status === 'pending' ? 'Importando…' : 'Sem título')}
               {track.source === 'youtube' && <span className="badge" title={track.youtube_url ?? ''}>YT</span>}

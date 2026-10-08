@@ -2,8 +2,20 @@ import { useRef, useState, useEffect } from 'react'
 import type { Track } from '../types'
 import { preloadPitch, setPitch } from '../lib/pitch'
 import { formatSemitones, transposeKey } from '../lib/transpose'
+import { NextIcon, PauseIcon, PlayIcon, PrevIcon, VolumeHighIcon, VolumeLowIcon, VolumeMuteIcon } from './Icons'
 
 const MAX_SHIFT = 6
+const VOLUME_STORAGE_KEY = 'music-drop:volume'
+
+function loadVolume() {
+  try {
+    const stored = localStorage.getItem(VOLUME_STORAGE_KEY)
+    const v = stored === null ? 1 : Number(stored)
+    return v >= 0 && v <= 1 ? v : 1
+  } catch {
+    return 1
+  }
+}
 
 interface Props {
   track: Track
@@ -32,10 +44,19 @@ export default function Player({
   const [playing, setPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
+  const [volume, setVolume] = useState(loadVolume)
+  const [muted, setMuted] = useState(false)
 
   useEffect(() => { onNextRef.current = onNext })
   useEffect(() => { semitonesRef.current = semitones })
   useEffect(() => { preloadPitch() }, [])
+
+  useEffect(() => {
+    const audio = audioRef.current
+    if (!audio) return
+    audio.volume = volume
+    audio.muted = muted
+  }, [volume, muted])
 
   // Pitch can also change from the chord sheet while this track plays
   useEffect(() => {
@@ -92,7 +113,14 @@ export default function Player({
     onSemitonesChange(clamped)
   }
 
-  const progress = duration ? (currentTime / duration) * 100 : 0
+  const changeVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = Number(e.target.value)
+    setVolume(v)
+    setMuted(v === 0)
+    try { localStorage.setItem(VOLUME_STORAGE_KEY, String(v)) } catch { /* storage unavailable */ }
+  }
+
+  const progress = duration ?(currentTime / duration) * 100 : 0
   const shiftedKey = semitones !== 0 && track.key ? transposeKey(track.key, semitones) : null
 
   return (
@@ -104,11 +132,11 @@ export default function Player({
       </div>
       <div className="player-center">
         <div className="player-controls">
-          <button className="ctrl-btn" onClick={onPrev} disabled={!hasPrev} title="Anterior">⏮</button>
+          <button className="ctrl-btn" onClick={onPrev} disabled={!hasPrev} title="Anterior"><PrevIcon /></button>
           <button className="ctrl-btn play-btn" onClick={togglePlay} title={playing ? 'Pausar' : 'Tocar'}>
-            {playing ? '⏸' : '▶'}
+            {playing ? <PauseIcon size={18} /> : <PlayIcon size={18} />}
           </button>
-          <button className="ctrl-btn" onClick={onNext} disabled={!hasNext} title="Próxima">⏭</button>
+          <button className="ctrl-btn" onClick={onNext} disabled={!hasNext} title="Próxima"><NextIcon /></button>
         </div>
         <div className="player-progress">
           <span className="time">{formatTime(currentTime)}</span>
@@ -122,29 +150,51 @@ export default function Player({
             style={{ background: `linear-gradient(to right, var(--primary) ${progress}%, var(--border) 0%)` }}
           />
           <span className="time">{formatTime(duration)}</span>
+          <div className="volume-control">
+            <button
+              className="ctrl-btn volume-btn"
+              onClick={() => setMuted((m) => !m)}
+              title={muted ? 'Ativar som' : 'Silenciar'}
+            >
+              {muted || volume === 0 ? <VolumeMuteIcon /> : volume < 0.5 ? <VolumeLowIcon /> : <VolumeHighIcon />}
+            </button>
+            <input
+              type="range"
+              className="seek-bar volume-bar"
+              min={0}
+              max={1}
+              step={0.05}
+              value={muted ? 0 : volume}
+              onChange={changeVolume}
+              aria-label="Volume"
+              style={{ background: `linear-gradient(to right, var(--primary) ${(muted ? 0 : volume) * 100}%, var(--border) 0%)` }}
+            />
+          </div>
         </div>
       </div>
-      <div className="pitch-control">
-        <span className="pitch-label">Tom</span>
-        <button
-          className="pitch-btn"
-          onClick={() => shift(semitones - 1)}
-          disabled={semitones <= -MAX_SHIFT}
-          title="Meio tom abaixo"
-        >−</button>
-        <span className={`pitch-value${semitones !== 0 ? ' shifted' : ''}`}>
-          {shiftedKey ? `${track.key} → ${shiftedKey}` : track.key || '—'}
-          {semitones !== 0 && <small> ({formatSemitones(semitones)})</small>}
-        </span>
-        <button
-          className="pitch-btn"
-          onClick={() => shift(semitones + 1)}
-          disabled={semitones >= MAX_SHIFT}
-          title="Meio tom acima"
-        >+</button>
-        {semitones !== 0 && (
-          <button className="pitch-reset" onClick={() => shift(0)} title="Tom original">↺</button>
-        )}
+      <div className="player-right">
+        <div className="pitch-control">
+          <span className="pitch-label">Tom</span>
+          <button
+            className="pitch-btn"
+            onClick={() => shift(semitones - 1)}
+            disabled={semitones <= -MAX_SHIFT}
+            title="Meio tom abaixo"
+          >−</button>
+          <span className={`pitch-value${semitones !== 0 ? ' shifted' : ''}`}>
+            {shiftedKey ? `${track.key} → ${shiftedKey}` : track.key || '—'}
+            {semitones !== 0 && <small> ({formatSemitones(semitones)})</small>}
+          </span>
+          <button
+            className="pitch-btn"
+            onClick={() => shift(semitones + 1)}
+            disabled={semitones >= MAX_SHIFT}
+            title="Meio tom acima"
+          >+</button>
+          {semitones !== 0 && (
+            <button className="pitch-reset" onClick={() => shift(0)} title="Tom original">↺</button>
+          )}
+        </div>
       </div>
     </div>
   )

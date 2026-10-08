@@ -1,5 +1,5 @@
-﻿import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useState } from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { formatSemitones, transposeKey, transposeSheet } from '../lib/transpose'
 import type { Track } from '../types'
@@ -13,6 +13,9 @@ interface Props {
 
 export default function ChordSheet({ tracks, semitonesFor, onSemitonesChange, onSaved }: Props) {
   const { id } = useParams()
+  const navigate = useNavigate()
+  // 'default' means the sheet was opened directly (no in-app history to go back to)
+  const cameFromApp = useLocation().key !== 'default'
   const track = tracks.find((t) => t.id === id)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
@@ -42,7 +45,7 @@ export default function ChordSheet({ tracks, semitonesFor, onSemitonesChange, on
     <div className={`chord-sheet${stage ? ' stage' : ''}`}>
       <div className="pv-header">
         <div>
-          <Link to="/musicas" className="back-link">← Músicas</Link>
+          <button className="back-link" onClick={() => (cameFromApp ? navigate(-1) : navigate('/musicas'))}>← Voltar</button>
           <h2 className="pv-title">{track.name}</h2>
           <span className="pv-meta">
             {track.band} · Tom: {shiftedKey || '—'}

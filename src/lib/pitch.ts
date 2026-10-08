@@ -1,4 +1,4 @@
-﻿import type { StretchNode } from 'signalsmith-stretch'
+import type { StretchNode } from 'signalsmith-stretch'
 // Served byte-for-byte: the library rebuilds its AudioWorklet from its own source text,
 // which breaks once a bundler rewrites that source
 import stretchWorkletUrl from 'signalsmith-stretch?url'
@@ -21,14 +21,20 @@ const loadLib = () => (libPromise ??= import('signalsmith-stretch'))
 /** Fetch the library ahead of time so the first pitch click still runs inside the user gesture. */
 export const preloadPitch = () => { loadLib() }
 
+// Keeps the singer's timbre natural instead of sounding "chipmunk" or "giant".
+// formantBaseHz is fixed: the default (0) pitch-tracks, which on a full mix locks onto the bass
+// and models an envelope fine enough to follow individual harmonics. Shifted vocal harmonics
+// then land in that envelope's valleys and get attenuated, so the voice sinks into the mix.
+// A high base smooths the envelope down to just the formants.
+const FORMANT = { formantCompensation: true, formantBaseHz: 400 }
+
 async function createStretch(context: AudioContext) {
   const [{ default: SignalsmithStretch }] = await Promise.all([
     loadLib(),
     context.audioWorklet.addModule(stretchWorkletUrl),
   ])
   const node = await SignalsmithStretch(context)
-  // Keeps the singer's timbre natural instead of sounding "chipmunk" or "giant"
-  await node.schedule({ formantCompensation: true })
+  await node.schedule(FORMANT)
   return node
 }
 
@@ -60,6 +66,6 @@ export async function setPitch(audio: HTMLMediaElement, semitones: number) {
     stretch.schedule({ active: false })
   } else {
     source.connect(stretch)
-    stretch.schedule({ active: true, semitones, formantCompensation: true })
+    stretch.schedule({ active: true, semitones, ...FORMANT })
   }
 }
