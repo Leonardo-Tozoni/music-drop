@@ -6,6 +6,8 @@ import { NextIcon, PauseIcon, PlayIcon, PrevIcon, VolumeHighIcon, VolumeLowIcon,
 
 const MAX_SHIFT = 6
 const VOLUME_STORAGE_KEY = 'music-drop:volume'
+// Keep in sync with the mobile breakpoint in App.css
+const MOBILE_QUERY = '(max-width: 700px)'
 
 function loadVolume() {
   try {
@@ -46,6 +48,7 @@ export default function Player({
   const [duration, setDuration] = useState(0)
   const [volume, setVolume] = useState(loadVolume)
   const [muted, setMuted] = useState(false)
+  const [volumeOpen, setVolumeOpen] = useState(false)
 
   useEffect(() => { onNextRef.current = onNext })
   useEffect(() => { semitonesRef.current = semitones })
@@ -120,7 +123,15 @@ export default function Player({
     try { localStorage.setItem(VOLUME_STORAGE_KEY, String(v)) } catch { /* storage unavailable */ }
   }
 
-  const progress = duration ?(currentTime / duration) * 100 : 0
+  // On mobile the slider is tucked into a pop-up so it doesn't crowd the player;
+  // the icon opens it there and mutes on desktop, where the slider is always visible
+  const onVolumeIcon = () => {
+    if (window.matchMedia(MOBILE_QUERY).matches) setVolumeOpen((o) => !o)
+    else setMuted((m) => !m)
+  }
+
+  const progress = duration ? (currentTime / duration) * 100 : 0
+  const fill = (pct: number) => `linear-gradient(to right, var(--primary), var(--accent) ${pct}%, var(--border) ${pct}%)`
   const shiftedKey = semitones !== 0 && track.key ? transposeKey(track.key, semitones) : null
 
   return (
@@ -147,28 +158,33 @@ export default function Player({
             max={duration || 0}
             value={currentTime}
             onChange={seek}
-            style={{ background: `linear-gradient(to right, var(--primary) ${progress}%, var(--border) 0%)` }}
+            style={{ background: fill(progress) }}
           />
           <span className="time">{formatTime(duration)}</span>
-          <div className="volume-control">
+          <div className={`volume-control${volumeOpen ? ' open' : ''}`}>
+            {/* Swallows the tap that closes the pop-up so it can't start another song */}
+            {volumeOpen && <div className="volume-backdrop" onClick={() => setVolumeOpen(false)} />}
             <button
               className="ctrl-btn volume-btn"
-              onClick={() => setMuted((m) => !m)}
-              title={muted ? 'Ativar som' : 'Silenciar'}
+              onClick={onVolumeIcon}
+              title="Volume"
+              aria-expanded={volumeOpen}
             >
               {muted || volume === 0 ? <VolumeMuteIcon /> : volume < 0.5 ? <VolumeLowIcon /> : <VolumeHighIcon />}
             </button>
-            <input
-              type="range"
-              className="seek-bar volume-bar"
-              min={0}
-              max={1}
-              step={0.05}
-              value={muted ? 0 : volume}
-              onChange={changeVolume}
-              aria-label="Volume"
-              style={{ background: `linear-gradient(to right, var(--primary) ${(muted ? 0 : volume) * 100}%, var(--border) 0%)` }}
-            />
+            <div className="volume-popover">
+              <input
+                type="range"
+                className="seek-bar volume-bar"
+                min={0}
+                max={1}
+                step={0.05}
+                value={muted ? 0 : volume}
+                onChange={changeVolume}
+                aria-label="Volume"
+                style={{ background: fill((muted ? 0 : volume) * 100) }}
+              />
+            </div>
           </div>
         </div>
       </div>

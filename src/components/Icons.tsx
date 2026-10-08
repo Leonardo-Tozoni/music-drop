@@ -29,16 +29,24 @@ function Speaker() {
   return <path d="M4 9.5v5a1 1 0 0 0 1 1h3l4.3 3.6a1 1 0 0 0 1.7-.77V5.67a1 1 0 0 0-1.7-.77L8 8.5H5a1 1 0 0 0-1 1z" />
 }
 
-const wave = { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const }
+const stroke = { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const }
 
 export function VolumeHighIcon(props: IconProps) {
-  return <Svg {...props}><Speaker /><path {...wave} d="M16 9a4 4 0 0 1 0 6" /><path {...wave} d="M18.5 6.5a7.5 7.5 0 0 1 0 11" /></Svg>
+  return <Svg {...props}><Speaker /><path {...stroke} d="M16 9a4 4 0 0 1 0 6" /><path {...stroke} d="M18.5 6.5a7.5 7.5 0 0 1 0 11" /></Svg>
 }
 
 export function VolumeLowIcon(props: IconProps) {
-  return <Svg {...props}><Speaker /><path {...wave} d="M16 9a4 4 0 0 1 0 6" /></Svg>
+  return <Svg {...props}><Speaker /><path {...stroke} d="M16 9a4 4 0 0 1 0 6" /></Svg>
 }
 
 export function VolumeMuteIcon(props: IconProps) {
-  return <Svg {...props}><Speaker /><path {...wave} d="M16.5 9.5l5 5M21.5 9.5l-5 5" /></Svg>
+  return <Svg {...props}><Speaker /><path {...stroke} d="M16.5 9.5l5 5M21.5 9.5l-5 5" /></Svg>
+}
+
+export function MenuIcon(props: IconProps) {
+  return <Svg {...props}><path {...stroke} d="M4 7h16M4 12h16M4 17h16" /></Svg>
+}
+
+export function CloseIcon(props: IconProps) {
+  return <Svg {...props}><path {...stroke} d="M6 6l12 12M18 6L6 18" /></Svg>
 }

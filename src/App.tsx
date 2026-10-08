@@ -7,6 +7,7 @@ import AddTracksModal from './components/AddTracksModal'
 import AgendaView from './components/AgendaView'
 import ChordSheet from './components/ChordSheet'
 import EventDetail from './components/EventDetail'
+import { CloseIcon, MenuIcon } from './components/Icons'
 import ImportYoutubeModal from './components/ImportYoutubeModal'
 import BulkImportModal from './components/BulkImportModal'
 import Login from './components/Login'
@@ -62,7 +63,23 @@ function BandApp({ userId }: { userId: string }) {
   const [showAddTracks, setShowAddTracks] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
   const [showBulk, setShowBulk] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+
+  // The mobile menu covers the whole screen: freeze the page behind it and let Esc close it
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false) }
+    document.addEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = ''
+    }
+  }, [menuOpen])
+
+  // Header actions are hidden on mobile; the menu repeats them and closes before opening a modal
+  const fromMenu = (action: () => void) => () => { setMenuOpen(false); action() }
 
   const fetchTracks = useCallback(async () => {
     const { data } = await supabase
@@ -173,6 +190,7 @@ function BandApp({ userId }: { userId: string }) {
     const { data } = await supabase.from('playlists').insert({ name }).select().single()
     if (data) {
       await fetchPlaylists()
+      setMenuOpen(false)
       navigate(`/repertorios/${data.id}`)
     }
   }
@@ -220,6 +238,9 @@ function BandApp({ userId }: { userId: string }) {
   return (
     <div className="app">
       <header className="header">
+        <button className="menu-btn" onClick={() => setMenuOpen(true)} title="Menu" aria-label="Abrir menu">
+          <MenuIcon size={24} />
+        </button>
         <Link to="/agenda" className="logo"><img src={logo} alt="Página 404" /><span>Ecossistema</span></Link>
         <div className="header-actions">
           <button className="btn-youtube" onClick={() => setShowYoutube(true)}>+ YouTube</button>
@@ -228,6 +249,38 @@ function BandApp({ userId }: { userId: string }) {
           <button className="header-logout" onClick={() => supabase.auth.signOut()} title="Sair">Sair</button>
         </div>
       </header>
+
+      <div
+        className={`mobile-menu${menuOpen ? ' open' : ''}`}
+        inert={!menuOpen}
+        // Any link inside (nav item, playlist) navigates away, so close the menu with it
+        onClick={(e) => { if ((e.target as HTMLElement).closest('a')) setMenuOpen(false) }}
+      >
+        <div className="mobile-menu-top">
+          <img src={logo} alt="Página 404" className="mobile-menu-logo" />
+          <button className="menu-btn" onClick={() => setMenuOpen(false)} title="Fechar" aria-label="Fechar menu">
+            <CloseIcon size={26} />
+          </button>
+        </div>
+        <button className="mobile-menu-profile" onClick={fromMenu(() => setShowProfile(true))}>
+          <span className="mobile-menu-avatar">{(profileName || '?').charAt(0).toUpperCase()}</span>
+          <span>
+            <strong>{profileName || 'Meu perfil'}</strong>
+            <small>Editar perfil</small>
+          </span>
+        </button>
+        <Sidebar
+          playlists={playlists}
+          trackCount={tracks.length}
+          onCreatePlaylist={handleCreatePlaylist}
+          onDeletePlaylist={handleDeletePlaylist}
+        />
+        <div className="mobile-menu-actions">
+          <button className="btn-youtube" onClick={fromMenu(() => setShowYoutube(true))}>+ YouTube</button>
+          <button className="btn-primary" onClick={fromMenu(() => setShowUpload(true))}>+ Upload</button>
+          <button className="btn-secondary" onClick={() => supabase.auth.signOut()}>Sair</button>
+        </div>
+      </div>
 
       <div className="content-area">
         <Sidebar
